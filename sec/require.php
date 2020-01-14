@@ -1,5 +1,5 @@
 <?php
-require_once('sec/biblio_utils/biblio_utils.php');
+require_once('sec/bilio_utils/biblio_utils.php');
 
 require_once('sec/selectLex.php');
 require_once('sec/verseSens.php');

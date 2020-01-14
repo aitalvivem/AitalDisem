@@ -1357,7 +1357,7 @@ class Db_manager{
 			return $err;
 		}
 		
-		$req = $this->_pdo->prepare('SELECT Association.Lid, Qid 
+		$req = $this->_pdo->prepare('SELECT association.Lid, Qid 
 									 FROM association, lexeme, etreutilise
 									 WHERE repAcquise = 1 AND 
 										   association.Lid = lexeme.Lid AND

@@ -9,13 +9,13 @@
 DROP DATABASE IF EXISTS aitaldisem;
 CREATE DATABASE IF NOT EXISTS aitaldisem;
 
-USE joc;
+USE aitaldisem;
 
 -- ------------------------------------------------------------
 --  Table: Item
 -- ------------------------------------------------------------
 
-CREATE TABLE Item(
+CREATE TABLE item(
         Qid    Varchar (50) NOT NULL ,
         nomFr  Varchar (50) NOT NULL ,
         descFr Varchar (255) NOT NULL ,
@@ -23,7 +23,7 @@ CREATE TABLE Item(
         descOc Varchar (255) NOT NULL ,
         nomEn  Varchar (50) NOT NULL ,
         descEn Varchar (255) NOT NULL
-	,CONSTRAINT Item_PK PRIMARY KEY (Qid)
+	,CONSTRAINT item_PK PRIMARY KEY (Qid)
 )ENGINE=InnoDB;
 
 
@@ -31,14 +31,14 @@ CREATE TABLE Item(
 --  Table: Variete
 -- ------------------------------------------------------------
 
-CREATE TABLE Variete(
+CREATE TABLE variete(
         idVar         Int NOT NULL AUTO_INCREMENT,
         varieteCon	  Varchar (50) NOT NULL ,
         varieteWiki   Varchar (50) NOT NULL ,
         etiquetteFr   Varchar (50) NOT NULL ,
         etiquetteOc   Varchar (50) NOT NULL ,
         etiquetteEn   Varchar (50) NOT NULL
-	,CONSTRAINT Variete_PK PRIMARY KEY (idVar)
+	,CONSTRAINT variete_PK PRIMARY KEY (idVar)
 )ENGINE=InnoDB;
 
 
@@ -46,10 +46,10 @@ CREATE TABLE Variete(
 --  Table: Traduction
 -- ------------------------------------------------------------
 
-CREATE TABLE Traduction(
+CREATE TABLE traduction(
         idTrad Int NOT NULL AUTO_INCREMENT,
         orth   Varchar (50) NOT NULL
-	,CONSTRAINT Traduction_PK PRIMARY KEY (idTrad)
+	,CONSTRAINT traduction_PK PRIMARY KEY (idTrad)
 )ENGINE=InnoDB;
 
 
@@ -57,14 +57,14 @@ CREATE TABLE Traduction(
 -- Table: Categorie
 -- ------------------------------------------------------------
 
-CREATE TABLE Categorie(
+CREATE TABLE categorie(
         codeCat     Int NOT NULL AUTO_INCREMENT,
         catWiki     Varchar (50) NOT NULL ,
         etiquetteFr Varchar (50) NOT NULL ,
         etiquetteOc Varchar (50) NOT NULL ,
         etiquetteEn Varchar (50) NOT NULL ,
         priorite    Int NOT NULL 
-	,CONSTRAINT Categorie_PK PRIMARY KEY (codeCat)
+	,CONSTRAINT categorie_PK PRIMARY KEY (codeCat)
 )ENGINE=InnoDB;
 
 
@@ -72,14 +72,14 @@ CREATE TABLE Categorie(
 --  Table: CatCongres
 -- ------------------------------------------------------------
 
-CREATE TABLE CatCongres(
+CREATE TABLE catcongres(
         codeCatC Int NOT NULL AUTO_INCREMENT,
         cat      Varchar (50) NOT NULL,
 		
 		codeCat	 Int NOT NULL
-	,CONSTRAINT CatCongres_PK PRIMARY KEY (codeCatC)
+	,CONSTRAINT catcongres_PK PRIMARY KEY (codeCatC)
 	
-	,CONSTRAINT CatCongres_Categorie_FK FOREIGN KEY (codeCat) REFERENCES Categorie(codeCat)
+	,CONSTRAINT catcongres_categorie_FK FOREIGN KEY (codeCat) REFERENCES categorie(codeCat)
 )ENGINE=InnoDB;
 
 
@@ -87,15 +87,15 @@ CREATE TABLE CatCongres(
 --  Table: Lexeme
 -- ------------------------------------------------------------
 
-CREATE TABLE Lexeme(
+CREATE TABLE lexeme(
         Lid     Varchar (50) NOT NULL ,
         orth    Varchar (50) NOT NULL ,
         freq    Float NOT NULL ,
         codeCat Int NOT NULL ,
 		erreur 	Varchar	(255) DEFAULT NULL
-	,CONSTRAINT Lexeme_PK PRIMARY KEY (Lid)
+	,CONSTRAINT lexeme_PK PRIMARY KEY (Lid)
 
-	,CONSTRAINT Lexeme_Categorie_FK FOREIGN KEY (codeCat) REFERENCES Categorie(codeCat)
+	,CONSTRAINT lexeme_categorie_FK FOREIGN KEY (codeCat) REFERENCES categorie(codeCat)
 )ENGINE=InnoDB;
 
 
@@ -103,12 +103,12 @@ CREATE TABLE Lexeme(
 --  Table: Logs
 -- ------------------------------------------------------------
 
-CREATE TABLE Logs(
+CREATE TABLE logs(
         id  	Int NOT NULL AUTO_INCREMENT,
         Sid 	Varchar (50) NOT NULL, 
         Qid 	Varchar (50) NOT NULL, 
 		dateLog	DATETIME
-	,CONSTRAINT Logs_PK PRIMARY KEY (id)
+	,CONSTRAINT logs_PK PRIMARY KEY (id)
 )ENGINE=InnoDB;
 
 
@@ -116,7 +116,7 @@ CREATE TABLE Logs(
 --  Table: Association
 -- ------------------------------------------------------------
 
-CREATE TABLE Association(
+CREATE TABLE association(
         Qid   Varchar (50) NOT NULL ,
         Lid   Varchar (50) NOT NULL ,
         nbOui Int NOT NULL ,
@@ -124,10 +124,10 @@ CREATE TABLE Association(
         verse Int NOT NULL ,
 		repAcquise	Int DEFAULT 0 ,
 		valeurRep	Varchar (50) DEFAULT NULL
-	,CONSTRAINT Association_PK PRIMARY KEY (Qid,Lid)
+	,CONSTRAINT association_PK PRIMARY KEY (Qid,Lid)
 
-	,CONSTRAINT Association_Item_FK FOREIGN KEY (Qid) REFERENCES Item(Qid) ON DELETE CASCADE
-	,CONSTRAINT Association_Lexeme0_FK FOREIGN KEY (Lid) REFERENCES Lexeme(Lid) ON DELETE CASCADE
+	,CONSTRAINT association_item_FK FOREIGN KEY (Qid) REFERENCES item(Qid) ON DELETE CASCADE
+	,CONSTRAINT association_lexeme0_FK FOREIGN KEY (Lid) REFERENCES lexeme(Lid) ON DELETE CASCADE
 )ENGINE=InnoDB;
 
 
@@ -135,13 +135,13 @@ CREATE TABLE Association(
 --  Table: EtreUtilise
 -- ------------------------------------------------------------
 
-CREATE TABLE EtreUtilise(
+CREATE TABLE etreutilise(
         idVar Int NOT NULL ,
         Lid   Varchar (50) NOT NULL
-	,CONSTRAINT EtreUtilise_PK PRIMARY KEY (idVar,Lid)
+	,CONSTRAINT etreutilise_PK PRIMARY KEY (idVar,Lid)
 
-	,CONSTRAINT EtreUtilise_Variete_FK FOREIGN KEY (idVar) REFERENCES Variete(idVar) ON DELETE CASCADE
-	,CONSTRAINT EtreUtilise_Lexeme0_FK FOREIGN KEY (Lid) REFERENCES Lexeme(Lid) ON DELETE CASCADE
+	,CONSTRAINT etreutilise_variete_FK FOREIGN KEY (idVar) REFERENCES variete(idVar) ON DELETE CASCADE
+	,CONSTRAINT etreutilise_lexeme0_FK FOREIGN KEY (Lid) REFERENCES lexeme(Lid) ON DELETE CASCADE
 )ENGINE=InnoDB;
 
 
@@ -149,11 +149,11 @@ CREATE TABLE EtreUtilise(
 --  Table: Correspondre
 -- ------------------------------------------------------------
 
-CREATE TABLE Correspondre(
+CREATE TABLE correspondre(
         idTrad Int NOT NULL ,
         Lid    Varchar (50) NOT NULL
-	,CONSTRAINT Correspondre_PK PRIMARY KEY (idTrad,Lid)
+	,CONSTRAINT correspondre_PK PRIMARY KEY (idTrad,Lid)
 
-	,CONSTRAINT Correspondre_Traduction_FK FOREIGN KEY (idTrad) REFERENCES Traduction(idTrad) ON DELETE CASCADE
-	,CONSTRAINT Correspondre_Lexeme0_FK FOREIGN KEY (Lid) REFERENCES Lexeme(Lid) ON DELETE CASCADE
+	,CONSTRAINT correspondre_traduction_FK FOREIGN KEY (idTrad) REFERENCES traduction(idTrad) ON DELETE CASCADE
+	,CONSTRAINT correspondre_lexeme0_FK FOREIGN KEY (Lid) REFERENCES lexeme(Lid) ON DELETE CASCADE
 )ENGINE=InnoDB;
