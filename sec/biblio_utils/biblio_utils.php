@@ -642,7 +642,7 @@ class Api_manager{
 		
 		if(isset($result['error'])){
 			$err = array(
-				'Erreur' => 'Impossible d\'ajouter le sens au lexeme (L-Id : '.$Lid.')',
+				'Erreur' => 'Impossible d\'ajouter le sens au lexeme (L-Id : '.$Sid.')',
 				'origine' => 'Méthode ajouteItemSens',
 				'ErreurOriginelle' => $result['error']
 			);
