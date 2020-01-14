@@ -1139,7 +1139,7 @@ class Db_manager{
 			return $err;
 		}
 		
-		$req = $this->_pdo->prepare('UPDATE Association 
+		$req = $this->_pdo->prepare('UPDATE association 
 									 SET 
 										nbOui = :nbOui, 
 										nbNon = :nbNon, 
@@ -1181,7 +1181,7 @@ class Db_manager{
 			return $err;
 		}
 		
-		$req = $this->_pdo->prepare('UPDATE Lexeme SET erreur = :err WHERE Lid = :Lid');
+		$req = $this->_pdo->prepare('UPDATE lexeme SET erreur = :err WHERE Lid = :Lid');
 		$req->bindValue(':err', $err);
 		$req->bindValue(':Lid', $Lid);
 		$req->execute();
@@ -1273,7 +1273,7 @@ class Db_manager{
 			return $err;
 		}
 		
-		$req = $this->_pdo->prepare('SELECT * FROM Variete WHERE idVar = :idVar');
+		$req = $this->_pdo->prepare('SELECT * FROM variete WHERE idVar = :idVar');
 		$req->bindValue(':idVar', $idVar, PDO::PARAM_INT);
 		$req->execute();
 		
@@ -1301,7 +1301,7 @@ class Db_manager{
 			return $err;
 		}
 		
-		$req = $this->_pdo->prepare('SELECT Lid, orth, freq FROM Lexeme WHERE Lid = :Lid');
+		$req = $this->_pdo->prepare('SELECT Lid, orth, freq FROM lexeme WHERE Lid = :Lid');
 		$req->bindValue(':Lid', $Lid);
 		$req->execute();
 		
@@ -1328,7 +1328,7 @@ class Db_manager{
 			return $err;
 		}
 		
-		$req = $this->_pdo->prepare('SELECT * FROM Item WHERE Qid = :Qid');
+		$req = $this->_pdo->prepare('SELECT * FROM item WHERE Qid = :Qid');
 		$req->bindValue(':Qid', $Qid);
 		$req->execute();
 		
@@ -1358,10 +1358,10 @@ class Db_manager{
 		}
 		
 		$req = $this->_pdo->prepare('SELECT Association.Lid, Qid 
-									 FROM Association, Lexeme, EtreUtilise
+									 FROM association, lexeme, etreutilise
 									 WHERE repAcquise = 1 AND 
-										   Association.Lid = Lexeme.Lid AND
-										   Lexeme.Lid = EtreUtilise.Lid AND
+										   association.Lid = lexeme.Lid AND
+										   lexeme.Lid = etreutilise.Lid AND
 										   idVar = :idVar'
 									);
 		$req->bindValue(':idVar', $idVar);
@@ -1381,7 +1381,7 @@ class Db_manager{
 	* @return	$reponse	(ArrayAssoc)	List of the varietys
 	*/
 	public function getAllVar(){
-		$req = $this->_pdo->query('SELECT * FROM Variete');
+		$req = $this->_pdo->query('SELECT * FROM variete');
 		$reponse = $req->fetchAll(PDO::FETCH_ASSOC);
 		$req->closeCursor();
 		
@@ -1408,7 +1408,7 @@ class Db_manager{
 			return $err;
 		}
 		
-		$req = $this->_pdo->prepare('SELECT nbOui, nbNon, verse, repAcquise, valeurRep FROM Association WHERE Lid = :Lid AND Qid = :Qid');
+		$req = $this->_pdo->prepare('SELECT nbOui, nbNon, verse, repAcquise, valeurRep FROM association WHERE Lid = :Lid AND Qid = :Qid');
 		$req->bindValue(':Lid', $Lid);	
 		$req->bindValue(':Qid', $Qid);	
 		$req->execute();
@@ -1446,7 +1446,7 @@ class Db_manager{
 			return $err;
 		}
 		
-		$req = $this->_pdo->prepare('SELECT Lid FROM Lexeme WHERE orth = :orth AND codeCat = :codeCat');
+		$req = $this->_pdo->prepare('SELECT Lid FROM lexeme WHERE orth = :orth AND codeCat = :codeCat');
 		$req->bindValue(':orth', $orth);
 		$req->bindValue(':codeCat', $codeCat, PDO::PARAM_INT);
 		$req->execute();
@@ -1535,16 +1535,16 @@ class Db_manager{
 		}
 		
 		$req = $this->_pdo->prepare('SELECT
-										Lexeme.Lid, orth, freq
+										lexeme.Lid, orth, freq
 									 FROM
-										Lexeme, EtreUtilise, Association
+										lexeme, etreutilise, association
 									 WHERE
 										codeCat = :codeCat AND
-										Lexeme.Lid = EtreUtilise.Lid AND
+										lexeme.Lid = etreutilise.Lid AND
 										idVar = :idVar AND
 										erreur IS NULL AND
 										repAcquise = 0 AND
-										Lexeme.Lid = Association.Lid
+										lexeme.Lid = association.Lid
 									 ORDER BY
 										freq DESC');
 		$req->bindValue(':codeCat', $codeCat, PDO::PARAM_INT);
@@ -1582,7 +1582,7 @@ class Db_manager{
 			return $err;
 		}
 		
-		$req = $this->_pdo->prepare('SELECT codeCat FROM Categorie WHERE priorite = :prio');
+		$req = $this->_pdo->prepare('SELECT codeCat FROM categorie WHERE priorite = :prio');
 		$req->bindValue(':prio', $prio, PDO::PARAM_INT);
 		$req->execute();
 		
@@ -1602,7 +1602,7 @@ class Db_manager{
 	* @return	$listPrio	(Array)	The list of the priorities
 	*/
 	public function getPrioRest(){
-		$req = $this->_pdo->query('SELECT DISTINCT priorite FROM Categorie ORDER BY priorite DESC');
+		$req = $this->_pdo->query('SELECT DISTINCT priorite FROM categorie ORDER BY priorite DESC');
 		
 		$listPrio = array();
 		
@@ -1626,7 +1626,7 @@ class Db_manager{
 	*/
 	public function getIdVar($Qid){
 		if(preg_match("#Q[0-9]+#", $Qid)){
-			$req = $this->_pdo->prepare('SELECT idVar FROM Variete WHERE varieteWiki = :Qid');
+			$req = $this->_pdo->prepare('SELECT idVar FROM variete WHERE varieteWiki = :Qid');
 			$req->bindValue(':Qid', $Qid);
 			$req->execute();
 			
@@ -1662,13 +1662,13 @@ class Db_manager{
 		}
 		
 		$req = $this->_pdo->prepare('SELECT 
-										Traduction.orth
+										traduction.orth
 									FROM 
-										Traduction, Lexeme, Correspondre
+										traduction, lexeme, correspondre
 									WHERE 
-										Lexeme.orth = :orth AND
-										Lexeme.Lid = Correspondre.Lid AND
-										Correspondre.idTrad = Traduction.idTrad'
+										lexeme.orth = :orth AND
+										lexeme.Lid = correspondre.Lid AND
+										correspondre.idTrad = traduction.idTrad'
 									);
 									
 		$req->bindValue(':orth', $orth);
@@ -1697,7 +1697,7 @@ class Db_manager{
 			return $err;
 		}
 		
-		$req = $this->_pdo->prepare('SELECT codeCat FROM Categorie WHERE catWiki = :catWiki');
+		$req = $this->_pdo->prepare('SELECT codeCat FROM categorie WHERE catWiki = :catWiki');
 		$req->bindValue(':catWiki', $Qid);
 		$req->execute();
 		
@@ -1717,7 +1717,7 @@ class Db_manager{
 	* @return	$reponse	(Array)	The list of lexema, each lexème is represented in an associative array
 	*/
 	public function getAllLex(){
-		$req = $this->_pdo->query('SELECT * FROM Lexeme');
+		$req = $this->_pdo->query('SELECT * FROM lexeme');
 		$reponse = $req->fetchAll(PDO::FETCH_ASSOC);
 		$req->closeCursor();
 		
@@ -1746,7 +1746,7 @@ class Db_manager{
 		
 		$datetime = date('Y-m-d H:i:s');
 		
-		$req = $this->_pdo->prepare('INSERT INTO Logs(Sid, Qid, datelog) VALUES(:Sid, :Qid, :date)');
+		$req = $this->_pdo->prepare('INSERT INTO logs(Sid, Qid, datelog) VALUES(:Sid, :Qid, :date)');
 		$req->bindValue(':Sid', $Sid);
 		$req->bindValue(':Qid', $Qid);
 		$req->bindValue(':date', $datetime);
@@ -1796,7 +1796,7 @@ class Db_manager{
 			return $message;
 		}
 		
-		$req = $this->_pdo->prepare('INSERT INTO Variete(varieteCon, varieteWiki, etiquetteFr, etiquetteOc, etiquetteEn) 
+		$req = $this->_pdo->prepare('INSERT INTO variete(varieteCon, varieteWiki, etiquetteFr, etiquetteOc, etiquetteEn) 
 									VALUES(:varieteCon, :varieteWiki, :etiquetteFr, :etiquetteOc, :etiquetteEn)');
 		$req->bindValue(':varieteCon', $varC);
 		$req->bindValue(':varieteWiki', $varW);
@@ -1850,13 +1850,13 @@ class Db_manager{
 		}
 		
 		// on vérifie si le Lid n'existe pas déjà dans la base de données
-		$req = $this->_pdo->prepare('SELECT * FROM Lexeme WHERE Lid = :Lid');
+		$req = $this->_pdo->prepare('SELECT * FROM lexeme WHERE Lid = :Lid');
 		$req->bindValue(':Lid', $Lid);
 		$req->execute();
 		$reponse = $req->fetchAll(PDO::FETCH_ASSOC);
 		
 		if(empty($reponse)){
-			$req = $this->_pdo->prepare('INSERT INTO Lexeme(Lid, orth, freq, codeCat) VALUES(:Lid, :orth, :freq, :codeCat)');
+			$req = $this->_pdo->prepare('INSERT INTO lexeme(Lid, orth, freq, codeCat) VALUES(:Lid, :orth, :freq, :codeCat)');
 			$req->bindValue(':Lid', $Lid);
 			$req->bindValue(':orth', $orth);
 			$req->bindValue(':freq', $freq);
@@ -1864,7 +1864,7 @@ class Db_manager{
 			$req->execute();
 			
 			foreach($listVar as $var){
-				$req2 = $this->_pdo->prepare('INSERT INTO EtreUtilise(Lid, idVar) VALUES(:Lid, :idVar)');
+				$req2 = $this->_pdo->prepare('INSERT INTO etreutilise(Lid, idVar) VALUES(:Lid, :idVar)');
 				$req2->bindValue(':Lid', $Lid);
 				$req2->bindValue(':idVar', $var);
 				$req2->execute();
@@ -1899,7 +1899,7 @@ class Db_manager{
 			return $message;
 		}
 		
-		$req = $this->_pdo->prepare('INSERT INTO CatCongres(cat, codeCat) VALUES (:cat, :codeCat)');
+		$req = $this->_pdo->prepare('INSERT INTO catcongres(cat, codeCat) VALUES (:cat, :codeCat)');
 		$req->bindValue(':cat', $libCat);
 		$req->bindValue(':codeCat', $codeCat, PDO::PARAM_INT);
 		$req->execute();
@@ -1929,7 +1929,7 @@ class Db_manager{
 			return $err;
 		}
 		
-		$req = $this->_pdo->prepare('INSERT INTO Categorie(catWiki, etiquetteFr, etiquetteOc, etiquetteEn, priorite)
+		$req = $this->_pdo->prepare('INSERT INTO categorie(catWiki, etiquetteFr, etiquetteOc, etiquetteEn, priorite)
 										VALUES(:catWiki, :etiquetteFr, :etiquetteOc, :etiquetteEn, :priorite)
 									');
 		
@@ -1971,7 +1971,7 @@ class Db_manager{
 			return $err;
 		}
 		
-		$req = $this->_pdo->prepare('SELECT * FROM Item WHERE Qid = :Qid');
+		$req = $this->_pdo->prepare('SELECT * FROM item WHERE Qid = :Qid');
 		$req->bindValue(':Qid', $data['Qid']);		
 		$req->execute();
 		$reponse = $req->fetchAll(PDO::FETCH_ASSOC);
@@ -1979,7 +1979,7 @@ class Db_manager{
 		// var_dump($reponse);
 		
 		if(empty($reponse)){
-			$req = $this->_pdo->prepare('INSERT INTO Item(Qid, nomFr, descFr, nomOc, descOc, nomEn, descEn)
+			$req = $this->_pdo->prepare('INSERT INTO item(Qid, nomFr, descFr, nomOc, descOc, nomEn, descEn)
 											VALUES (:Qid, :nomFr, :descFr, :nomOc, :descOc, :nomEn, :descEn)');
 											
 			$req->bindValue(':Qid', $data['Qid']);
@@ -2014,14 +2014,14 @@ class Db_manager{
 			return $err;
 		}
 		
-		$req = $this->_pdo->prepare('SELECT * FROM Association WHERE Qid = :Qid AND Lid = :Lid');
+		$req = $this->_pdo->prepare('SELECT * FROM association WHERE Qid = :Qid AND Lid = :Lid');
 		$req->bindValue(':Qid', $Qid);
 		$req->bindValue(':Lid', $Lid);
 		$req->execute();
 		$reponse = $req->fetchAll(PDO::FETCH_ASSOC);
 		
 		if(empty($reponse)){	
-			$req = $this->_pdo->prepare('INSERT INTO Association(Qid, Lid, nbOui, nbNon, verse)
+			$req = $this->_pdo->prepare('INSERT INTO association(Qid, Lid, nbOui, nbNon, verse)
 											VALUES (:Qid, :Lid, 0, 0, 0)');
 			$req->bindValue(':Qid', $Qid);
 			$req->bindValue(':Lid', $Lid);
@@ -2046,7 +2046,7 @@ class Db_manager{
 			return $message;
 		}
 		
-		$req = $this->_pdo->prepare('INSERT INTO Traduction(orth) VALUES(:orth)');
+		$req = $this->_pdo->prepare('INSERT INTO traduction(orth) VALUES(:orth)');
 		$req->bindValue(':orth', $orth);
 		$req->execute();
 		
@@ -2077,14 +2077,14 @@ class Db_manager{
 		}
 		
 		// check if the association doesn't already exists
-		$req = $this->_pdo->prepare('SELECT * FROM Correspondre WHERE Lid = :Lid AND idTrad = :idTrad');
+		$req = $this->_pdo->prepare('SELECT * FROM correspondre WHERE Lid = :Lid AND idTrad = :idTrad');
 		$req->bindValue(':Lid', $Lid);
 		$req->bindValue(':idTrad', $idTrad);
 		$req->execute();
 		$reponse = $req->fetchAll(PDO::FETCH_ASSOC);
 		
 		if(empty($reponse)){	
-			$req = $this->_pdo->prepare('INSERT INTO Correspondre(Lid, idTrad) VALUES (:Lid, :idTrad)');
+			$req = $this->_pdo->prepare('INSERT INTO correspondre(Lid, idTrad) VALUES (:Lid, :idTrad)');
 			$req->bindValue(':Lid', $Lid);
 			$req->bindValue(':idTrad', $idTrad);
 			$req->execute();
