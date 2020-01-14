@@ -581,7 +581,7 @@ class Api_manager{
 	* @param	$_USER_PASS	(String)	Password of the account to connect to the API
 	*/
 	public function __construct($url, $nom, $mdp){
-		require_once 'Requests-master\library\Requests.php';
+		require_once 'Requests-master/library/Requests.php';
 		Requests::register_autoloader();
 		
 		$this->setApi_url($url);
