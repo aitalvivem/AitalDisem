@@ -1602,7 +1602,7 @@ class Db_manager{
 	* @return	$listPrio	(Array)	The list of the priorities
 	*/
 	public function getPrioRest(){
-		$req = $this->_pdo->query('SELECT DISTINCT priorite FROM categorie ORDER BY priorite DESC');
+		$req = $this->_pdo->query('SELECT DISTINCT priorite FROM Categorie ORDER BY priorite DESC');
 		
 		$listPrio = array();
 		
