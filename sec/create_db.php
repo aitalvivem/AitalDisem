@@ -6,7 +6,7 @@ Before runnig this script you need to create the database. To do so execute the 
 
 echo 'début de la récupération et de l\'insertion des données dans la base : <br/>';
 
-require_once 'sec/biblio_utils.php';
+require_once 'biblio_utils/biblio_utils.php';
 require_once('sec/config.php');
 
 // intanciate Db_manager and Api_manager

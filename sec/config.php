@@ -34,7 +34,7 @@ $dataxml_path = '';					// (String)	path to the xml file
 $useTraduction = ; 					// (Bool)	if the script needs to use translations
 
 // Config of the app
-$toTrustUsers_nbTest = ; 			// (Integer)	number of test to run for testing the reliability of an user
+$toTrustUsers_nbTest = ; 			// (Integer)	number of tests to run to test the reliability of an user
 $toTrustUsers_goodAnswersRatio = ;	// (Float)		ratio of good answers in the test phase to trust an user
 $toTrustData_nbAnswers = 5;			// (Integer)	number of answer to trust an association in the database
 $toTrustData_ratio = 0.9;			// (Float)		ratio to validate or deny an association in the database
