@@ -127,7 +127,6 @@ if(!isset($_GET['codeVar']) && !isset($_SESSION['codeVar'])){
 	}
 }
 ?>
-			<!-- <button onclick="attend()">test filtre</button> -->
 		</div>
 	</body>
 </html>
