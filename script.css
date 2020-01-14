@@ -27,7 +27,7 @@ body{
 	font-family: "ExoRegular",Helvetica,Arial,sans-serif;
 }
 .selectVar{
-	margin : 0 25%;
+	margin : 0 5%;
 	padding : 0 2em;
 	padding-bottom : 1em;
 }
@@ -103,7 +103,7 @@ aside h2, .stats h2{
 	color: #e7714d;
 }
 .stats{
-	margin : 0 25% 1em;
+	margin : 0 5% 1em;
 	padding : 0 1em;
 }
 .stats p{
@@ -135,7 +135,6 @@ aside h2, .stats h2{
 	display : none;
 }
 #imgAtt, #msgAtt{
-	/* display : inline-block; */
 	flex-grow : 1;
 	margin : auto;
 }
