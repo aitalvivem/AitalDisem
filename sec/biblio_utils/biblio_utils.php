@@ -3,538 +3,11 @@
 /**
 * biblio_utils	Library of php tools to create/edit/get lexicografical data in wikidata.
 * 
-* @version	0.40
+* @version	1
 * 
 * @author	Vincent Gleizes
 * @author	Lo Congrès Permanent de la Lenga Occitana
 */
-
-// -----------------------------------------------------------------------------------------------------------
-// ---- General functions
-// -----------------------------------------------------------------------------------------------------------
-
-/**
-* recupTrad	Get from an external database the translations for each lexema and insert it in the database.
-* 
-* @param	$pdoTrad	(PDO)	Instance of PDO, connected to as database matching L-id and translations
-* @param	$db_manager		(Db_manager)	Instance of Db_manager, to communicate with the database to fill
-* 
-* @return	$message	(ArrayAssoc)	Informations about an error, if one append
-*/
-function recupTrad($pdoTrad, $db_manager){
-	// check the parameters
-	$err = 0;
-	
-	if(!($pdoTrad instanceof PDO)){
-		$err++;
-		$message['Erreur '.$err] = 'Paramètre invalide, le paramètre $pdoTrad doit être une instance de la classe PDO. Donné : '.gettype($pdoTrad).'.';
-	}
-	if(!($db_manager instanceof Db_manager)){
-		$err++;
-		$message['Erreur '.$err] = 'Paramètre invalide, le paramètre $db_manager doit être une instance de la classe Db_manager. Donné : '.gettype($db_manager).'.';
-	}
-	
-	if($err > 0){
-		$message['origine'] = 'Méthode recupTrad';
-		return $message;
-	}
-	
-	// get the L-ids
-	$listLex = $db_manager->getAllLex();
-	$listLid = array();
-	
-	foreach($listLex as $lex){
-		$listLid[] = $lex['Lid'];
-	}
-	
-	$req = $pdoTrad->prepare('SELECT
-							traduction
-						FROM
-							traduction, correspondre
-						WHERE
-							traduction.idTrad = correspondre.idTrad AND
-							correspondre.Lid = :Lid');
-	
-	foreach($listLid as $Lid){
-		$req->bindValue(':Lid', $Lid);
-		$req->execute();
-		
-		$rep = $req->fetch(PDO::FETCH_ASSOC);
-		$trad = $rep['traduction'];
-		
-		$req->closeCursor();
-		
-		// insert the translation
-		$idTrad = $db_manager->insereTrad($trad);
-		
-		if(isset($idTrad['Erreur'])){
-			$message[] = array(
-							'Erreur' => 'Impossible d\'insérer la traduction "'.$trad.'" du lexème '.$Lid.'.',
-							'origine' => 'Méthode recupTrad',
-							'ErreurOriginelle' => $idTrad
-						);
-			continue;
-		}
-		
-		// Link the L-id to the id of the translation
-		$rep = $db_manager->insereCorres($Lid, $idTrad);
-		
-		if(isset($rep['Erreur'])){
-			$message[] = array(
-							'Erreur' => 'Impossible d\'insérer la correpondance '.$Lid.' - '.$idTrad.'.',
-							'origine' => 'Méthode recupTrad',
-							'ErreurOriginelle' => $rep
-						);
-			continue;
-		}
-	}
-	
-	if(!empty($message))
-		return($message);
-}
-
-/**
-* recupLex	Fill tables Lexemes and EtreUtilise of the database using a csv file and, an xml file and a database.
-* 
-* @param	$csvFile	(String)	Path to the csv file
-* @param	$separateur	(String)	Delimiter of the csv file
-* @param	$xmlFile	(String)	Path to the xml file
-* @param	$pdoFreq	(PDO)		Instance of PDO to communicate waith a database matches a lemma and its frequency of use
-* @param	$db_manager		(Db_manager)	Instance of Db_manager
-* 
-* @return	$message	(ArrayAssoc)	Informations about an error, if one append
-*/
-function recupLex($csvFile, $separateur, $xmlFile, $pdoFreq, $db_manager){
-	// check the parameters
-	$err = 0;
-	
-	if(!is_string($csvFile)){
-		$err++;
-		$message['Erreur '.$err] = 'Paramètre invalide, le paramètre $csvFile doit être du type String. Donné : '.gettype($csvFile).'.';
-	}
-	if(!is_string($separateur)){
-		$err++;
-		$message['Erreur '.$err] = 'Paramètre invalide, le paramètre $separateur doit être du type String. Donné : '.gettype($separateur).'.';
-	}
-	if(!is_string($xmlFile)){
-		$err++;
-		$message['Erreur '.$err] = 'Paramètre invalide, le paramètre $xmlFile doit être du type String. Donné : '.gettype($xmlFile).'.';
-	}
-	if(!($pdoFreq instanceof PDO)){
-		$err++;
-		$message['Erreur '.$err] = 'Paramètre invalide, le paramètre $pdoFreq doit être une instance de la classe PDO. Donné : '.gettype($pdoFreq).'.';
-	}
-	if(!($db_manager instanceof Db_manager)){
-		$err++;
-		$message['Erreur '.$err] = 'Paramètre invalide, le paramètre $db_manager doit être une instance de la classe Db_manager. Donné : '.gettype($db_manager).'.';
-	}
-	
-	if($err > 0){
-		$message['origine'] = 'Méthode recupLex';
-		return $message;
-	}
-	
-	// read the xml file to get the data as an array
-	$xml = lit_xml($xmlFile);
-	
-	$message = array();
-	$err = 0;
-	
-	// reading through the xml file
-	if (($fichier = fopen($csvFile, "r")) !== FALSE) {
-		while (($donnees = fgetcsv($fichier, 1000, $separateur)) !== FALSE) {
-			$Lid = $donnees[1];
-			$xmlId = $donnees[0];
-			
-			if(preg_match("#L[0-9]+-F[0-9]+#", $Lid))
-				continue;
-			
-			$orth = $xml[$xmlId]['orth'];
-			
-			$req = $pdoFreq->prepare('SELECT freq FROM freq WHERE orth = :orth');
-			$req->bindValue(':orth', $orth);
-			$req->execute();
-		
-			$rep = $req->fetch(PDO::FETCH_ASSOC);
-			
-			$freq = (float) $rep['freq'];
-			
-			$idCatW = $xml[$xmlId]['cat'];
-			$codeCat = $db_manager->getCodeCat($idCatW);
-			
-			$listVar = $xml[$xmlId]['listVar'];
-			$listIdVar = array();
-			foreach($listVar as $cle => $Qid)
-				$listIdVar[] = $db_manager->getIdVar($Qid);
-			
-			// check if the lexeme as a namesake in the database
-			$homonymes = $db_manager->getLexOrthCat($orth, $codeCat);
-			if(!empty($homonymes)){
-				$res = $db_manager->insereLex($Lid, $orth, $freq, $listIdVar, $codeCat);
-				$db_manager->updateLexErr($Lid, 'homonyme');
-				
-				foreach($homonymes as $hom){
-					$db_manager->updateLexErr($hom, 'homonyme');
-				}
-			}else
-				$res = $db_manager->insereLex($Lid, $orth, $freq, $listIdVar, $codeCat);
-			
-			if(isset($res['Erreur'])){
-				$err++;
-				$message[] = array(
-						'Erreur '.$err => 'Impossible d\'insérer le lexeme : '.$orth.'(L-id : '.$Lid.' - xmlId : '.$xmlId.')',
-						'origine' => 'Méthode recupLex',
-						'ErreurOriginelle' => $res
-					);
-			}
-		}
-		fclose($fichier);
-	}
-	if($err>0)
-		return $message;
-}
-
-/**
-* lit_xml	Read an xml file and return the data as an array.
-* 
-* @param	$xmlFile	(String)	Path to the xml file
-* 
-* @return	$result	(ArrayAssoc)	Data of the xml file
-*/
-function lit_xml($xmlFile){
-	$xml = simplexml_load_file($xmlFile);
-	$result = array();
-	
-	foreach($xml->text->body->entry as $entree){
-		// get the spelling
-		$orth = $entree->form->orth->__toString();
-		$cat = $entree->form->pos->__toString();
-		
-		// get the xmlId
-		$attribute = $entree->form->attributes('http://www.w3.org/XML/1998/namespace');
-		
-		$xmlId = $attribute['id']->__toString();
-		
-		// get the Q-ids of the dialects
-		$listVar = array();
-		
-		foreach($entree->form->form->listRelation->relation as $relation) {
-			if($relation->attributes()->name == 'P346')
-				$listVar[] = $relation->attributes()->passive->__toString();
-		}
-		
-		$result[$xmlId] = array('orth' => $orth, 'cat' => $cat, 'listVar' => $listVar);
-	}
-	
-	return $result;
-}
-
-/**
-* getItemCorres	Get the Q-id of the items of which the label maches to a spelling (or to its french translation if the useTrad parameter is true)
-* 
-* @param	$orth			(String)		The spelling to look for
-* @param	$api_manager	(Api_manager)	Instance of Api_manager to communicate with the wikidata API
-* @param	$db_manager		(Db_manager)	Instance of Db_manager, to communicate with the database
-* @param	$useTrad		(Bool)			Parameter saying if we search for the french translation of the spelling too
-* 
-* @return	$listQid	(Array)		The list of the Q-id found
-* @return	$message	(ArrayAssoc)	Informations about an error, if one append
-*/
-function getItemCorres($orth, $api_manager, $db_manager, $useTrad){
-	// check the parameters
-	$err = 0;
-	
-	if(!is_string($orth)){
-		$err++;
-		$message['Erreur '.$err] = 'Paramètre invalide, le paramètre $orth doit être du type String. Donné : '.gettype($orth).'.';
-	}
-	if(!($api_manager instanceof Api_manager)){
-		$err++;
-		$message['Erreur '.$err] = 'Paramètre invalide, le paramètre $api_manager doit être une instance de la classe Api_manager. Donné : '.gettype($api_manager).'.';
-	}
-	if(!($db_manager instanceof Db_manager)){
-		$err++;
-		$message['Erreur '.$err] = 'Paramètre invalide, le paramètre $db_manager doit être une instance de la classe Db_manager. Donné : '.gettype($db_manager).'.';
-	}
-	if(!is_bool($useTrad)){
-		$err++;
-		$message['Erreur '.$err] = 'Paramètre invalide, le paramètre $useTrad doit être du type Booléen. Donné : '.gettype($useTrad).'.';
-	}
-	
-	if($err > 0){
-		$message['origine'] = 'Méthode getItemCorres';
-		return $message;
-	}
-	
-	$item_corres = array();
-	
-	// get the items matching with the occitan word
-	$listCorres = $api_manager->chercheCorres($orth, 'oc');
-	if(isset($listCorres['Erreur'])){
-		$message = array(
-						'Erreur' => 'Impossible de trouver les correspondances pour le mot : '.$orth,
-						'origine' => 'Méthode getItemCorres',
-						'ErreurOriginelle' => $listCorres
-					);
-		return $message;
-	}
-	
-	foreach($listCorres as $item)
-		$item_corres[] = $item;
-		
-	// if we need to look for the translations
-	if($useTrad){
-		// get the french translations
-		$listTrad = $db_manager->getTrad($orth);
-		if(isset($listTrad['Erreur'])){
-			$message = array(
-							'Erreur' => 'Impossible de trouver les correspondances pour le mot : '.$orth,
-							'origine' => 'Méthode getItemCorres',
-							'ErreurOriginelle' => $listTrad
-						);
-			return $message;
-		}
-		
-		foreach($listTrad as $trad){
-			// get the items matching the translation
-			$listCorres = $api_manager->chercheCorres($trad, 'fr');
-			if(isset($listCorres['Erreur'])){
-				$message = array(
-								'Erreur' => 'Impossible de trouver les correspondances pour le mot : '.$trad,
-								'origine' => 'Méthode getItemCorres',
-								'ErreurOriginelle' => $listCorres
-							);
-				return $message;
-			}
-			
-			foreach($listCorres as $item)
-				$item_corres[] = $item;
-		}
-	}
-	
-	return $item_corres;
-}
-
-/**
-* insereCatégories	Fill the tables CatCongres and Categorie using a csv file.
-* 
-* @param	$csvFile	(String)	Path to the csv file
-* @param	$separateur	(String)	Delimiter of the csv file
-* @param	$api_manager	(Api_manager)	Instance of Api_manager
-* @param	$db_manager		(Db_manager)	Instance of Db_manager
-* 
-* @return	$message	(ArrayAssoc)	Informations about an error, if one append
-*/
-function insereCat($csvFile, $separateur, $api_manager, $db_manager){
-	// check the parameters
-	$err = 0;
-	
-	if(!is_string($csvFile)){
-		$err++;
-		$message['Erreur '.$err] = 'Paramètre invalide, le paramètre $csvFile doit être du type String. Donné : '.gettype($orth).'.';
-	}
-	if(!is_string($separateur)){
-		$err++;
-		$message['Erreur '.$err] = 'Paramètre invalide, le paramètre $separateur doit être du type String. Donné : '.gettype($orth).'.';
-	}
-	if(!($api_manager instanceof Api_manager)){
-		$err++;
-		$message['Erreur '.$err] = 'Paramètre invalide, le paramètre $api_manager doit être une instance de la classe Api_manager. Donné : '.gettype($api_manager).'.';
-	}
-	if(!($db_manager instanceof Db_manager)){
-		$err++;
-		$message['Erreur '.$err] = 'Paramètre invalide, le paramètre $db_manager doit être une instance de la classe Db_manager. Donné : '.gettype($db_manager).'.';
-	}
-	
-	if($err > 0){
-		$message['origine'] = 'Méthode insereCat';
-		return $message;
-	}
-	
-	// initialise a list to remember the Q-ids already inserted
-	$insertedIds = array();
-	$message = array();
-	
-	if (($fichier = fopen($csvFile, "r")) !== FALSE) {
-		while (($donnees = fgetcsv($fichier, 1000, $separateur)) !== FALSE) {
-			$catC = $donnees[0];
-			$Qid = $donnees[1];
-			$priorite = $donnees[2]; 
-			
-			if(!preg_match("#Q[0-9]+#", $Qid)){
-				echo 'Erreur : Qid invalide, impossible de récupérer les labels correspondants à la catégorie "'.$catC.'". Qid donné : '.$Qid;
-				continue;
-			}
-			
-			// if the id hasn't been inserted yet
-			if(!in_array($Qid, $insertedIds)){
-				$data['Qid'] = $Qid;
-				$data['priorite'] = $priorite; 
-				
-				// get the wikidata descriptions in french, occitan, english
-				$listLabels = $api_manager->getInfoItem($Qid);
-				if(isset($listCorres['Erreur'])){
-					$message[] = array(
-									'Erreur' => 'Erreur dans l\'insertion de catégorie',
-									'origine' => 'Méthode insereCat',
-									'ErreurOriginelle' => $listLabels
-								);
-				}
-				
-				if(isset($listLabels['labels'])){
-					$listLabels = $listLabels['labels'];
-					
-					$listLg = ['oc', 'fr', 'en'];
-					
-					foreach($listLg as $lg){
-						if(isset($listLabels[$lg]))
-							$data[$lg] = $listLabels[$lg];
-						else
-							$data[$lg] = 'étiquette inconnue';
-					}
-					
-					// insert the category
-					$codeCat = $db_manager->insereCat($data);
-					if(isset($codeCat['Erreur'])){
-						$message[] = array(
-										'Erreur' => 'Erreur dans l\'insertion de catégorie',
-										'origine' => 'Méthode insereCat',
-										'ErreurOriginelle' => $codeCat
-									);
-					}
-					
-					// remember the Q-id inserted
-					$insertedIds[] = $Qid;
-				}else
-					echo $Qid.' n\'a pas de labels';
-			}
-			// else get codeCat in Categorie matching to the Q-id (catWiki) 
-			else{
-				$codeCat = $db_manager->getCodeCat($Qid);
-				if(isset($codeCat['Erreur'])){
-					$message[] = array(
-									'Erreur' => 'Erreur dans l\'insertion de catégorie',
-									'origine' => 'Méthode insereCat',
-									'ErreurOriginelle' => $codeCat
-								);
-				}
-			}
-			
-			// insert the Congres's category in CatCongres
-			$result = $db_manager->insereCatC($catC, $codeCat);
-			if(isset($result['Erreur'])){
-				$message[] = array(
-								'Erreur' => 'Erreur dans l\'insertion de catégorie',
-								'origine' => 'Méthode insereCat',
-								'ErreurOriginelle' => $result
-							);
-			}
-		}
-		fclose($fichier);
-	}
-	if(!empty($message))
-		return $message;
-}
-
-/**
-* insereItemCorres	Fill the tables Item and Correspondre of the database.
-* 
-* @param	$api_manager	(Api_manager)	Instance of Api_manager
-* @param	$db_manager		(Db_manager)	Instance of Db_manager
-* @param	$useTrad		(Bool)			Parameter saying if we search for the french translation of the spelling too
-* 
-* @return	$message	(ArrayAssoc)	Informations about an error, if one append
-*/
-function insereItemCorres($api_manager, $db_manager, $useTrad){
-	// check the parameters
-	$err = 0;
-	
-	if(!($api_manager instanceof Api_manager)){
-		$err++;
-		$message['Erreur '.$err] = 'Paramètre invalide, le paramètre $api_manager doit être une instance de la classe Api_manager. Donné : '.gettype($api_manager).'.';
-	}
-	if(!($db_manager instanceof Db_manager)){
-		$err++;
-		$message['Erreur '.$err] = 'Paramètre invalide, le paramètre $db_manager doit être une instance de la classe Db_manager. Donné : '.gettype($db_manager).'.';
-	}
-	
-	if($err > 0){
-		$message['origine'] = 'Méthode insereItemCorres';
-		return $message;
-	}
-	
-	$listLex = $db_manager->getAllLex();
-	$message = array();
-	
-	foreach($listLex as $cle => $lex){
-		$Lid = $lex['Lid'];
-		$orth = $lex['orth'];
-		
-		// get the matching items
-		$itemCorres = getItemCorres($orth, $api_manager, $db_manager, $useTrad);
-		if(isset($itemCorres['Erreur'])){
-			$message[] = array(
-							'Erreur' => 'Erreur dans l\'insertion de catégorie',
-							'origine' => 'Méthode insereCat',
-							'ErreurOriginelle' => $itemCorres
-						);
-			continue;
-		}
-		
-		foreach($itemCorres as $cle => $Qid){
-			$data['Qid'] = $Qid;
-			
-			// get the label and description en occitan, french, english
-			$infos = $api_manager->getInfoItem($Qid);
-			if(isset($infos['Erreur'])){
-				$message[] = array(
-					'Erreur' => 'Erreur dans l\'insertion de catégorie',
-					'origine' => 'Méthode insereCat',
-					'ErreurOriginelle' => $infos
-				);
-				continue;
-			}
-			
-			$listLabels = $infos['labels'];
-			$listDesc = $infos['descriptions'];
-			
-			$listLg = ['oc', 'fr', 'en'];
-			
-			foreach($listLg as $lg){
-				if(isset($listLabels[$lg]))
-					$data['nom'.ucfirst($lg)] = $listLabels[$lg];
-				else
-					$data['nom'.ucfirst($lg)] = 'étiquette inconnue';
-				
-				if(isset($listDesc[$lg]))
-					$data['desc'.ucfirst($lg)] = $listDesc[$lg];
-				else
-					$data['desc'.ucfirst($lg)] = 'aucune description disponible';
-			}
-			
-			$res = $db_manager->insereItem($data);
-			if(isset($res['Erreur'])){
-				$message[] = array(
-					'Erreur' => 'Erreur dans l\'insertion de catégorie',
-					'origine' => 'Méthode insereCat',
-					'ErreurOriginelle' => $res
-				);
-				continue;
-			}
-			$res = $db_manager->insereAssoc($Lid, $Qid);
-			if(isset($res['Erreur'])){
-				$message[] = array(
-					'Erreur' => 'Erreur dans l\'insertion de catégorie',
-					'origine' => 'Méthode insereCat',
-					'ErreurOriginelle' => $res
-				);
-				continue;
-			}
-		}
-	}
-	if(!empty($message))
-		return $message;
-}
 
 // -----------------------------------------------------------------------------------------------------------
 // ---- Class : Api_manager
@@ -727,7 +200,7 @@ class Api_manager{
 		$reponse = $this->sendPost($data);
 		if(isset($reponse['Erreur'])){
 			$err = array(
-				'Erreur' => 'Erreur dans l\'insertion de catégorie',
+				'Erreur' => 'Impossible d\'ajouter le sens au lexeme (L-Id : '.$Lid.')',
 				'origine' => 'Méthode creeSens',
 				'ErreurOriginelle' => $reponse
 			);
@@ -842,8 +315,8 @@ class Api_manager{
 		$result = $this->execute($req);
 		if(isset($result['Erreur'])){
 			$err = array(
-				'Erreur' => 'Erreur dans l\'insertion de catégorie',
-				'origine' => 'Méthode insereCat',
+				'Erreur' => 'Erreur dans l\'exécution de la requete',
+				'origine' => 'Méthode chercheCorres',
 				'ErreurOriginelle' => $result
 			);
 			return $err;
@@ -979,8 +452,8 @@ class Api_manager{
 		$result = $this->execute($req);
 		if(isset($result['Erreur'])){
 			$err = array(
-				'Erreur' => 'Erreur dans l\'insertion de catégorie',
-				'origine' => 'Méthode insereCat',
+				'Erreur' => 'Erreur dans l\'exécution de la requete',
+				'origine' => 'Méthode coApi',
 				'ErreurOriginelle' => $result
 			);
 			return $err;
@@ -1009,8 +482,8 @@ class Api_manager{
 		$response = $this->sendPost($data);
 		if(isset($response['Erreur'])){
 			$err = array(
-				'Erreur' => 'Erreur dans l\'insertion de catégorie',
-				'origine' => 'Méthode insereCat',
+				'Erreur' => 'Erreur de la connexion à l\api',
+				'origine' => 'Méthode coApi',
 				'ErreurOriginelle' => $response
 			);
 			return $err;
@@ -1026,8 +499,8 @@ class Api_manager{
 		$result = $this->sendPost($data);
 		if(isset($result['Erreur'])){
 			$err = array(
-				'Erreur' => 'Erreur dans l\'insertion de catégorie',
-				'origine' => 'Méthode insereCat',
+				'Erreur' => 'Erreur dans l\'exécution de la requete',
+				'origine' => 'Méthode coApi',
 				'ErreurOriginelle' => $result
 			);
 			return $err;
@@ -1251,7 +724,6 @@ class Db_manager{
 		
 		$stats['nbSensVerse'] = (int) $reponse['nbSensVerse'];
 		
-		// var_dump( $stats );
 		return $stats;
 	}
 	
@@ -1797,7 +1269,7 @@ class Db_manager{
 		}
 		
 		$req = $this->_pdo->prepare('INSERT INTO variete(varieteCon, varieteWiki, etiquetteFr, etiquetteOc, etiquetteEn) 
-									VALUES(:varieteCon, :varieteWiki, :etiquetteFr, :etiquetteOc, :etiquetteEn)');
+									 VALUES(:varieteCon, :varieteWiki, :etiquetteFr, :etiquetteOc, :etiquetteEn)');
 		$req->bindValue(':varieteCon', $varC);
 		$req->bindValue(':varieteWiki', $varW);
 		$req->bindValue(':etiquetteFr', $etFr);
@@ -1870,39 +1342,6 @@ class Db_manager{
 				$req2->execute();
 			}
 		}
-	}
-	
-	/**
-	* insereCatC	Insert a new row in the table CatCongres.
-	* 
-	* @access	public
-	* 
-	* @param	@libCat	(String)	The name of the category
-	* @param	@codeCat	(integer)	Id of the corresponding category in the table Categorie
-	* 
-	* @return 	$message	(ArrayAssoc)	Informations about an error, if one append
-	*/
-	public function insereCatC($libCat, $codeCat){
-		$err = 0;
-		
-		if(!is_string($libCat)){
-			$err++;
-			$message['Erreur '.$err] = 'Paramètre invalide, le paramètre $libCat doit être du type String. Donné : '.gettype($libCat).'.';
-		}
-		if(!is_int($codeCat)){
-			$err++;
-			$message['Erreur '.$err] = 'Paramètre invalide, le paramètre $codeCat doit être du type Integer. Donné : '.gettype($codeCat).'.';
-		}
-		
-		if($err > 0){
-			$message['origine'] = 'Méthode insereCatC';
-			return $message;
-		}
-		
-		$req = $this->_pdo->prepare('INSERT INTO catcongres(cat, codeCat) VALUES (:cat, :codeCat)');
-		$req->bindValue(':cat', $libCat);
-		$req->bindValue(':codeCat', $codeCat, PDO::PARAM_INT);
-		$req->execute();
 	}
 	
 	/**
