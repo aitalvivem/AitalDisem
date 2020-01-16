@@ -48,8 +48,10 @@ if(isset($_SESSION['lexDejaProp'])){
 				
 				if($rep == 'Òc')
 					$valRep = 'oui';
-				else
+				elseif($rep == 'Non')
 					$valRep = 'non';
+				else
+					$valRep = 'jsp';
 				
 				// look if its a good answer
 				if($valRep == $assoc->valeurRep())
