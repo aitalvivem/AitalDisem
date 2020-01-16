@@ -142,6 +142,20 @@ if(isset($_SESSION['lexDejaProp'])){
 						if($ratioOui >= $toTrustData_ratio){
 							$assoc->setRepAcquise(1);
 							$assoc->setValeurRep('oui');
+							
+							// check if the association is ready to be inserted in wikidata
+							if(($assoc->repAcquise() == 1) && ($assoc->valeurRep() == 'oui')){
+								$api_manager = new Api_manager($api_url, $api_username, $api_password);
+								
+								// insert the association in wikidata
+								$result = verseSens($assoc, $api_manager);
+								
+								if(isset($result['Erreur'])){
+									ecritErreur($result);
+								}else{
+									$assoc->setVerse(1);
+								}
+							}
 						}elseif($ratioNon >= $toTrustData_ratio){
 							$assoc->setRepAcquise(1);
 							$assoc->setValeurRep('non');
@@ -151,21 +165,6 @@ if(isset($_SESSION['lexDejaProp'])){
 					// update the association in the database
 					$db_manager = new Db_manager($db_host, $db_dbname, $db_username, $db_password);
 					$db_manager->updateAssoc($assoc);
-					
-					// check if the association is ready to be inserted in wikidata
-					if(($assoc->repAcquise() == 1) && ($assoc->valeurRep() == 'oui')){
-						$api_manager = new Api_manager($api_url, $api_username, $api_password);
-						
-						// insert the association in wikidata
-						$result = verseSens($assoc, $api_manager);
-						
-						if(isset($result['Erreur'])){
-							ecritErreur($result);
-						}else{
-							$assoc->setVerse(1);
-							$db_manager->updateAssoc($assoc);
-						}
-					}
 				}
 			}
 			
