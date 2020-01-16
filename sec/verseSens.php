@@ -33,7 +33,7 @@ function verseSens($assoc, $api_manager){
 		if(isset($Sid['Erreur'])){
 			$message['Erreur'] = 'Erreur de la création du sens '.$assoc->lexeme()->lid().' - '.$assoc->item()->qid();
 			$message['origine'] = 'Fonction verseSens';
-			$message['ErreurOriginelle'] = $Sid['Erreur'];
+			$message['ErreurOriginelle'] = $Sid;
 			return $message;
 		}
 		if(!preg_match("#L[0-9]+-S[0-9]+#", $Sid)){
@@ -46,7 +46,7 @@ function verseSens($assoc, $api_manager){
 		if(isset($result['Erreur'])){
 			$message['Erreur'] = 'Erreur dans l\'ajout de l\'item '.$assoc->item()->qid().' pour le sens '.$Sid;
 			$message['origine'] = 'Fonction verseSens';
-			$message['ErreurOriginelle'] = $result['Erreur'];
+			$message['ErreurOriginelle'] = $result;
 			return $message;
 		}
 	}else{
