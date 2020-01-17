@@ -157,7 +157,7 @@ if(isset($_SESSION['lexDejaProp'])){
 								
 								if(isset($result['Erreur'])){
 									ecritErreur($result);
-								}else{
+								}elseif(!isset($_SESSION['questionPrio'])){
 									$assoc->setVerse(1);
 								}
 							}
