@@ -39,7 +39,7 @@ function getItemCorres($orth, $api_manager, $db_manager, $useTrad){
 	$item_corres = array();
 	
 	// get the items matching with the occitan word
-	$listCorres = $api_manager->chercheCorres($orth, 'oc');
+	$listCorres = $api_manager->chercheCorres($orth, $api_manager->main_lg());
 	if(isset($listCorres['Erreur'])){
 		$message = array(
 						'Erreur' => 'Impossible de trouver les correspondances pour le mot : '.$orth,
@@ -54,7 +54,7 @@ function getItemCorres($orth, $api_manager, $db_manager, $useTrad){
 		
 	// if we need to look for the translations
 	if($useTrad){
-		// get the french translations
+		// get the translations
 		$listTrad = $db_manager->getTrad($orth);
 		if(isset($listTrad['Erreur'])){
 			$message = array(
@@ -67,7 +67,7 @@ function getItemCorres($orth, $api_manager, $db_manager, $useTrad){
 		
 		foreach($listTrad as $trad){
 			// get the items matching the translation
-			$listCorres = $api_manager->chercheCorres($trad, 'fr');
+			$listCorres = $api_manager->chercheCorres($trad, $api_manager->trad_lg());
 			if(isset($listCorres['Erreur'])){
 				$message = array(
 								'Erreur' => 'Impossible de trouver les correspondances pour le mot : '.$trad,

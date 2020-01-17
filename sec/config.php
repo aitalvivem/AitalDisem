@@ -16,5 +16,7 @@ $toTrustUsers_nbTest = ; 			// (Integer)	number of tests to run to test the reli
 $toTrustUsers_goodAnswersRatio = ;	// (Float)		ratio of good answers in the test phase to trust an user
 $toTrustData_nbAnswers = ;			// (Integer)	number of answer to trust an association in the database
 $toTrustData_ratio = ;				// (Float)		ratio to validate or deny an association in the database
+$main_lg = '';						// (String)		Code of the main language of the app
+$translation_lg = '';				// (String)		Code of the translation's language
 
 ?>

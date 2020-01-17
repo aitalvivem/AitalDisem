@@ -61,7 +61,7 @@ function insereItemCorres($api_manager, $db_manager, $useTrad){
 			$listLabels = $infos['labels'];
 			$listDesc = $infos['descriptions'];
 			
-			$listLg = ['oc', 'fr', 'en'];
+			$listLg = [$api_manager->main_lg(), $api_manager->trad_lg(), 'en'];
 			
 			foreach($listLg as $lg){
 				if(isset($listLabels[$lg]))

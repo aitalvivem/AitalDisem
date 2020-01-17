@@ -47,19 +47,39 @@ class Api_manager{
 	private $_USER_PASS;
 	
 	/**
+	* $_main_lg
+	* 
+	* @var		string
+	* @access	private
+	*/
+	private $_main_lg;
+	
+	/**
+	* $_trad_lg
+	* 
+	* @var		string
+	* @access	private
+	*/
+	private $_trad_lg;
+	
+	/**
 	* __construct	Construtor of the class Api_manager
 	* 
 	* @param	$_api_url	(String)	Url to use 
 	* @param	$_USER_NAME	(String)	Username of the account to connect to the API
 	* @param	$_USER_PASS	(String)	Password of the account to connect to the API
+	* @param	$_main_lg	(String)	Language code for the lexemes
+	* @param	$_trad_lg	(String)	Language code of the translations
 	*/
-	public function __construct($url, $nom, $mdp){
+	public function __construct($url, $nom, $mdp, $main_lg, $trad_lg){
 		require_once 'Requests-master/library/Requests.php';
 		Requests::register_autoloader();
 		
 		$this->setApi_url($url);
 		$this->setUser_name($nom);
 		$this->setUser_pass($mdp);
+		$this->setMain_lg($main_lg);
+		$this->setTrad_lg($trad_lg);
 	}
 	
 	// -----------------------------------------------------------------------------------------------------------
@@ -157,8 +177,10 @@ class Api_manager{
 			return $err;
 		}
 		
+		$lg = $this->main_lg()."|en|".$this->trad_lg();
+		
 		// get the language and the description of the item
-		$req = "?action=wbgetentities&format=json&ids=".$Qid."&props=descriptions&languages=".urlencode("fr|en|oc");
+		$req = "?action=wbgetentities&format=json&ids=".$Qid."&props=descriptions&languages=".urlencode($lg);
 		
 		$result = $this->execute($req);
 		if(isset($result['Erreur'])){
@@ -533,6 +555,12 @@ class Api_manager{
 	private function user_pass(){
 		return $this->_USER_PASS;
 	}
+	public function main_lg(){
+		return $this->_main_lg;
+	}
+	public function trad_lg(){
+		return $this->_trad_lg;
+	}
 	
 	// -----------------------------------------------------------------------------------------------------------
 	// ---- Setters
@@ -549,6 +577,14 @@ class Api_manager{
 	private function setUser_pass($mdp){
 		if(is_string($mdp))
 			$this->_USER_PASS = $mdp;
+	}
+	private function setMain_lg($lg){
+		if(is_string($lg))
+			$this->_main_lg = $lg;
+	}
+	private function setTrad_lg($lg){
+		if(is_string($lg))
+			$this->_trad_lg = $lg;
 	}
 }
 

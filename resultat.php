@@ -73,7 +73,7 @@ if(isset($_SESSION['lexDejaProp'])){
 				}
 			// if this is a high-priority question
 			}elseif(isset($_SESSION['questionPrio']) && is_array($_SESSION['questionPrio'])){
-				$api_manager = new Api_manager($api_url, $api_username, $api_password);
+				$api_manager = new Api_manager($api_url, $api_username, $api_password, $main_lg, $translation_lg);
 				$db_manager = new Db_manager($db_host, $db_dbname, $db_username, $db_password);
 				
 				// we get the association
@@ -147,7 +147,7 @@ if(isset($_SESSION['lexDejaProp'])){
 							
 							// check if the association is ready to be inserted in wikidata
 							if(($assoc->repAcquise() == 1) && ($assoc->valeurRep() == 'oui')){
-								$api_manager = new Api_manager($api_url, $api_username, $api_password);
+								$api_manager = new Api_manager($api_url, $api_username, $api_password, $main_lg, $translation_lg);
 								
 								// insert the association in wikidata
 								$result = verseSens($assoc, $api_manager);
