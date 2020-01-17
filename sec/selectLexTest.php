@@ -34,8 +34,11 @@ function selectLexTest($db_manager, $idVar){
 	// choose a random association
 	if(!empty($listAssoc))
 		$assoc = $listAssoc[array_rand($listAssoc)];
-	else
-		return false;
+	else{
+		$message = array('Erreur' => 'Aucune association de test disponible dans la base de données.', 
+						'origine' => 'Fonction selectLexTest');
+		return $message;
+	}
 	
 	// add the selected association to the already proposed list
 	$_SESSION['assocTestProp'][] = $assoc;
