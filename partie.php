@@ -3,6 +3,34 @@ session_start();
 include('sec/require.php');
 
 if(isset($_SESSION['lexDejaProp'])){
+	// define function to handle errors (to write the error's messages in a log.txt file)
+	function eclateTableau($tab){
+		$str = "\n";
+		
+		foreach($tab as $cle => $valeur){
+			if(is_array($valeur)){
+				$str .= $cle.' : '."\n".eclateTableau($valeur);
+			}else{
+				$str .= $cle.' : '.$valeur."\n";
+			}
+		}
+		
+		return $str;
+	}
+	function ecritErreur($erreur){
+		$datetime = date('Y-m-d H:i:s');
+		
+		$contenu = '----------'."\n";
+		$contenu .= 'Date : '.$datetime."\n";
+		
+		$contenu .= eclateTableau($erreur);
+		
+		$contenu .= '----------'."\n";
+		
+		$file = fopen("log.txt", "a");
+		fwrite($file, $contenu);
+		fclose($file);
+	}
 ?>
 	<!DOCTYPE html>
 	<html>
@@ -46,6 +74,9 @@ if(isset($_SESSION['lexDejaProp'])){
 			if(!($assoc instanceof Association) && $_SESSION['nbTest'] < $toTrustUsers_nbTest){
 				$_SESSION['test'] = false;
 				$_SESSION['jouePourDuBeurre'] = 1;
+				
+				ecritErreur($assoc);
+				
 				header('Location: partie.php');
 			}else{
 				$_SESSION['assocEnCours'] = urlencode(serialize($assoc));
