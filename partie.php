@@ -152,6 +152,8 @@ if(isset($_SESSION['lexDejaProp'])){
 					}
 					</script>';
 				}else{
+					ecritErreur($assoc);
+					
 					header('Location: bye.php?complete=1&rep='.$_GET['rep']);
 					exit;
 				}
