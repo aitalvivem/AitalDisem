@@ -95,6 +95,9 @@ if(isset($_SESSION['lexDejaProp'])){
 					$result = $db_manager->insereLog($rep, $item->qid());
 					if(isset($result['Erreur'])){
 						ecritErreur($result);
+					}else{
+						$assoc->setVerse(1);
+						$db_manager->updateAssoc($assoc);
 					}
 					
 					unset($_SESSION['questionPrio']);
