@@ -176,7 +176,7 @@ if(isset($_SESSION['lexDejaProp'])){
 			echo '<aside>
 				<p>Ta responsa : <b>'.$rep.'</b></p>';
 			
-			// print some staistics for the user
+			// print some statistics for the user
 			echo $assoc->afficheStatAssoc();
 			echo '</aside>';
 		}
