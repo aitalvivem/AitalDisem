@@ -206,7 +206,7 @@ class Api_manager{
 		// create the data
 		$data_sens = '{"glosses":{';
 		foreach($infos as $cle => $valeur){
-			$data_sens .= '"'.$valeur['language'].'": {"value": "'.$valeur['value'].'", "language" : "'.$valeur['language'].'"},';
+			$data_sens .= '"'.$valeur['language'].'": {"value": "'.str_replace('"', '\"', $valeur['value']).'", "language" : "'.$valeur['language'].'"},';
 		}
 		$data_sens = substr($data_sens, 0, -1);
 		$data_sens .= '}}';
