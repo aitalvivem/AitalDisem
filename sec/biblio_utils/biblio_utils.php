@@ -333,23 +333,39 @@ class Api_manager{
 			return $message;
 		}
 		
-		$req = '?action=wbsearchentities&format=json&search='.$orth.'&language='.$lg.'&type=item';
-		$result = $this->execute($req);
-		if(isset($result['Erreur'])){
-			$err = array(
-				'Erreur' => 'Erreur dans l\'exécution de la requete',
-				'origine' => 'Méthode chercheCorres',
-				'ErreurOriginelle' => $result
-			);
-			return $err;
-		}
-		
-		$result = $result['search'];
+		// on contruit la requete
+		$query= 'SELECT distinct ?item WHERE{ 
+		  {?item ?label "'.$orth.'"@'.$lg.'}.
+		  ?article schema:about ?item .
+		  {?article schema:inLanguage "fr"} UNION {?article schema:inLanguage "oc"} UNION {?article schema:inLanguage "en"}.
+		  SERVICE wikibase:label { bd:serviceParam wikibase:language "oc, fr, en". }   
+		}';
+
+		$url="https://query.wikidata.org/sparql?format=json&query=".urlencode($query);
+
+
+		$curl_handle=curl_init();
+		curl_setopt($curl_handle, CURLOPT_URL, $url);
+		curl_setopt($curl_handle, CURLOPT_CONNECTTIMEOUT, 10);
+		curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, 3);
+		curl_setopt($curl_handle, CURLOPT_USERAGENT, 'Test Wikidata');
+		$json = curl_exec($curl_handle);
+
+		curl_close($curl_handle);
+
+		// var_dump($json);
+
+		$parsed_json = json_decode($json, $assoc = true);
+		// var_dump($parsed_json);
+
+
+		$results=$parsed_json['results']['bindings'];
+
+		// var_dump($results);
+
 		$listItem = array();
-		
-		foreach($result as $cle => $match){
-			if($match['match']['language'] == $lg)
-				$listItem[] = $match['id'];
+		foreach($results as $res){
+			$listItem[] = str_replace('http://www.wikidata.org/entity/', '', $res['item']['value']);
 		}
 		
 		return $listItem;
