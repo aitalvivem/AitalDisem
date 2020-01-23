@@ -333,7 +333,7 @@ class Api_manager{
 			return $message;
 		}
 		
-		// on contruit la requete
+		// build the request
 		$query= 'SELECT distinct ?item WHERE{ 
 		  {?item ?label "'.$orth.'"@'.$lg.'}.
 		  ?article schema:about ?item .
@@ -353,15 +353,9 @@ class Api_manager{
 
 		curl_close($curl_handle);
 
-		// var_dump($json);
-
 		$parsed_json = json_decode($json, $assoc = true);
-		// var_dump($parsed_json);
-
 
 		$results=$parsed_json['results']['bindings'];
-
-		// var_dump($results);
 
 		$listItem = array();
 		foreach($results as $res){
