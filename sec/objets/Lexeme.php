@@ -37,7 +37,7 @@ class Lexeme{
 	* @param	$data	(ArrayAssoc)	Contains the data to initialize the attributes of the class
 	*/
 	public function __construct(array $data){
-		if(!empty($data['Lid']) && !empty($data['orth']) && !empty($data['freq'])){
+		if(!empty($data['Lid']) && !empty($data['orth']) && isset($data['freq'])){
 			foreach($data as $key => $value)
 			{
 				$method = 'set'.ucfirst($key);
